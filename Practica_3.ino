@@ -10,7 +10,13 @@ float temperaturaF=0;
 int pulsador= 8;
 int salirConfiguracion=0;
 String informacion[5];
-String str;
+
+//*******Variables que se guardaran en la eeprom
+ String pass;
+ String RED;
+ String sensorName;
+ String sensorType;
+ String location;
 
 
 
@@ -156,12 +162,13 @@ Serial.println(RED);
 Serial.println(pass); */
 //beeSerial.println("AT+CWJAP="+RED+","+pass);//
 
-
 delay(1000);
+
+ char datos[95];
+ String cadena;
 while(x==0)
 {
-  char datos[50];
-  String cadena;
+ 
   String cad1 ="";
   int posicion_inicial = 0;
   int posicion_final= 0;
@@ -172,7 +179,7 @@ while(x==0)
     if(beeSerial.find("~"))
     {
       //+IPD,0,67:~"ARRIS-5222"/"macosay3099"/TemperaturaDallas/Temperatura/recamara.
-      beeSerial.readBytesUntil("~",datos,80);
+      beeSerial.readBytesUntil("~",datos,95);
       for (int i=0; i<strlen(datos);i++)
       {
         cadena += String(datos[i]);
@@ -209,12 +216,26 @@ while(x==0)
   informacion[0].toCharArray(red,15);
   char password[20];
   informacion[1].toCharArray(password,20);
+  char nombreSensor[20];
+  informacion[2].toCharArray(nombreSensor,20);
+  char tipoSensor[20];
+  informacion[3].toCharArray(tipoSensor,20);
+  char ubicacionSensor[20];
+  informacion[4].toCharArray(ubicacionSensor,20);
   
-  String RED = String(red);
-  String pass= String(password);
   
+  RED = String(red);
+  pass= String(password);
+  sensorName = String(nombreSensor);
+  sensorType = String(tipoSensor);
+  location = String(ubicacionSensor);
+  
+  Serial.println(cadena);
   Serial.println(RED);
   Serial.println(pass);
+  Serial.println(sensorName);
+  Serial.println(sensorType);
+  Serial.println(ubicacionSensor);
 
   delay(10000);
 /*
