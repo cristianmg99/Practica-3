@@ -2,6 +2,7 @@
 #include <DallasTemperature.h>
 #include <SoftwareSerial.h>
 
+
 #define ONE_WIRE_BUS 2
 
 float temperaturaC = 0;
@@ -9,7 +10,7 @@ float temperaturaF=0;
 int pulsador= 8;
 int salirConfiguracion=0;
 String informacion[7];
-
+String str;
 
 
 
@@ -92,10 +93,16 @@ void respuestaComandos(String Proceso)
    delay(1000);
 }
 
+//***********************
 void configuracion()
 {
 int x=0;
 Serial.println("Entraste en modo configuracion");
+
+
+beeSerial.println("ATE0");
+delay(1000);
+respuestaComandos("ATE0");
 
 //Desconectamos la red local guardada
 beeSerial.println("AT+CWMODE=1");
@@ -130,13 +137,24 @@ respuestaComandos("Conexion multiple");
 beeSerial.println("AT+CIPSERVER=1,9001");
 delay(3000);
 respuestaComandos("ModoServer");
+delay(10000);
 
+informacion[0]="\"ARRIS-5222\"";
+informacion[1]="\"macosay3099\"";
 
+char red[15];
+informacion[0].toCharArray(red,15);
+char password[20];
+informacion[1].toCharArray(password,20);
 
-char red[]="ARRIS-5222";
-char password[]= "macosay3099";
-//Serial.println("AT+CWJAP="+red","+password);//
+String RED = String(red);
+String pass= String(password);
 
+Serial.println(RED);
+Serial.println(pass);
+//beeSerial.println("AT+CWJAP="+RED+","+pass);//
+
+/*
 delay(1000);
 while(x==0)
 {
@@ -190,6 +208,8 @@ while(x==0)
   {
     Serial.println(informacion[j]);
   }
+
+  */
 }
 
 //************************************************************************Setup**************************************************************************************
@@ -199,7 +219,9 @@ void setup() {
   beeSerial.begin(115000);
   sensores.begin();
   pinMode(pulsador,INPUT);
-
+ // write_StringEEPROM(0,"HELLO");
+  
+/*
   Serial.println("Entraste en modo configuracion");
 
 //Desconectamos la red local guardada
@@ -234,11 +256,14 @@ beeSerial.println("AT+CIPSERVER=1,9001");
 delay(3000);
 respuestaComandos("ModoServer");
 delay(30000);
-
+*/
 }
 //************************************************************************LOOP**************************************************************************************
 void loop() {
 
+  //str=read_StringEEPROM(0);
+  //Serial.println(str);
+  
   if(digitalRead(pulsador)==HIGH)
   {
    // Serial.println("Presionado");
