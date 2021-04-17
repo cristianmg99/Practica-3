@@ -7,7 +7,8 @@
 float temperaturaC = 0;
 float temperaturaF=0;
 int pulsador= 8;
-
+int salirConfiguracion=0;
+String informacion[5];
 
 
 
@@ -16,7 +17,7 @@ OneWire red1(ONE_WIRE_BUS);
 DallasTemperature sensores(&red1);
 SoftwareSerial beeSerial(7, 6); // RX, TX
 //************************************************************************Funciones**********************************************************************************
-void tiempo()
+void tiempo(int proposito)
 {
 int x=0;
 long tiempoEspera = millis()+5000;
@@ -28,6 +29,10 @@ while(x==0)
   {
     Serial.println("5 Segundos cumplidos");
     x=1;
+    if(proposito == 1)
+    {
+    configuracion();
+    }
     delay(2000);
     
   }
@@ -46,15 +51,17 @@ while(x==0)
       tiempoEspera=0;
     }
     
-  
   }
+
+ 
+  
 }
   
 }
 
 void configuracion()
 {
-
+int x=0;
 /*
 //Desconectamos la red local guardada
 beeSerial.println("AT+CWMODE=1");
@@ -73,10 +80,66 @@ delay(1000);
 beeSerial.println("AT+CWSAP=\"smartcd35\",\admin1234\",6,2");
 delay(3000);
 
+//Activamos el modo server para esperar los sensores
+beeSerial.println("AT+CIPSERVER=1,9001");
+
+
 */
+Serial.println("Entraste en modo configuracion");
+delay(3000);
+while(x==0)
+{
+  char datos[50];
+  String cadena;
+  String cad1 ="";
+  int posicion_inicial = 0;
+  int posicion_final= 0;
+  int cont=0;
+      
+  if(Serial.available())
+  {
+    if(Serial.find("~"))
+    {
+      
+      Serial.readBytesUntil("~",datos,50);
+      for (int i=0; i<strlen(datos);i++)
+      {
+        cadena += String(datos[i]);
+      }
 
+    do
+    {
+    
+      posicion_final = cadena.indexOf("/",posicion_inicial);
+      cad1 = cadena.substring(posicion_inicial,posicion_final);
+      informacion[cont] = String(cad1);
+       
+      posicion_inicial = posicion_final + 1;
+      cont++;
+    
+    
+     } 
+     while(posicion_final > 0);
 
+     x=1;
+      
+    }
+    else
+    {
+      x=0;
+    }
+  }
+  
+  else
+   {
+   x=0;
+   }
+}
 
+  for(int j=0;j<5;j++)
+  {
+    Serial.println(informacion[j]);
+  }
 }
 
 //************************************************************************Setup**************************************************************************************
@@ -94,11 +157,10 @@ void loop() {
   if(digitalRead(pulsador)==HIGH)
   {
    // Serial.println("Presionado");
-   tiempo();
+   tiempo(1);//1 es para Entrar al modo configuracion , 2 es para cuando queremos salir
   }
   else{
-  unsigned long tiempo=millis();
-  long detener=millis()+5000;
+ 
   sensores.requestTemperatures(); 
   temperaturaC=sensores.getTempCByIndex(0);
   Serial.println("La temperatura es: "+ String(temperaturaC));
