@@ -9,7 +9,7 @@ float temperaturaC = 0;
 float temperaturaF=0;
 int pulsador= 8;
 int salirConfiguracion=0;
-String informacion[7];
+String informacion[5];
 String str;
 
 
@@ -139,7 +139,9 @@ delay(3000);
 respuestaComandos("ModoServer");
 delay(10000);
 
-informacion[0]="\"ARRIS-5222\"";
+Serial.println("Esperando por los datos del sensor");
+
+/*informacion[0]="\"ARRIS-5222\"";
 informacion[1]="\"macosay3099\"";
 
 char red[15];
@@ -151,10 +153,10 @@ String RED = String(red);
 String pass= String(password);
 
 Serial.println(RED);
-Serial.println(pass);
+Serial.println(pass); */
 //beeSerial.println("AT+CWJAP="+RED+","+pass);//
 
-/*
+
 delay(1000);
 while(x==0)
 {
@@ -164,13 +166,13 @@ while(x==0)
   int posicion_inicial = 0;
   int posicion_final= 0;
   int cont=0;
-      
-  if(Serial.available())
+  
+  if(beeSerial.available())
   {
-    if(Serial.find("~"))
+    if(beeSerial.find("~"))
     {
       //+IPD,0,67:~"ARRIS-5222"/"macosay3099"/TemperaturaDallas/Temperatura/recamara.
-      Serial.readBytesUntil("~",datos,80);
+      beeSerial.readBytesUntil("~",datos,80);
       for (int i=0; i<strlen(datos);i++)
       {
         cadena += String(datos[i]);
@@ -199,11 +201,23 @@ while(x==0)
       }
   }
 
-  
-  
-  
+   
 }
 
+
+  char red[15];
+  informacion[0].toCharArray(red,15);
+  char password[20];
+  informacion[1].toCharArray(password,20);
+  
+  String RED = String(red);
+  String pass= String(password);
+  
+  Serial.println(RED);
+  Serial.println(pass);
+
+  delay(10000);
+/*
   for(int j=0;j<7;j++)
   {
     Serial.println(informacion[j]);
