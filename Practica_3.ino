@@ -1,11 +1,14 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <SoftwareSerial.h>
+#include <EEPROM.h>
 
 
 #define ONE_WIRE_BUS 2
 
 float temperaturaC = 0;
+float AtemperaturaC=0;
+float AtemperaturaF=0;
 float temperaturaF=0;
 int pulsador= 8;
 int salirConfiguracion=0;
@@ -24,17 +27,17 @@ OneWire red1(ONE_WIRE_BUS);
 DallasTemperature sensores(&red1);
 SoftwareSerial beeSerial(7, 6); // RX, TX
 //************************************************************************Funciones**********************************************************************************
-void tiempo(int proposito)
+void tiempo(int tiempo,int proposito)
 {
 int x=0;
-long tiempoEspera = millis()+5000;
+long tiempoEspera = millis()+tiempo;
 
 while(x==0)
 {
   unsigned long tiempoActual=millis();
   if( tiempoEspera==0)
   {
-    Serial.println("5 Segundos cumplidos");
+    Serial.println( String(tiempo)+" MiliSegundos cumplidos");
     x=1;
     if(proposito == 1)
     {
@@ -80,6 +83,7 @@ void respuestaComandos(String Proceso)
     
     if (beeSerial.find("OK"))
     {
+      
       Serial.println(Proceso+": OK");
      } 
     else if(beeSerial.find("no change"))
@@ -89,7 +93,12 @@ void respuestaComandos(String Proceso)
     else
     {
       Serial.println(Proceso+": No");
-     }
+      if(Proceso == "WIFI")
+      {
+        Serial.println("Hubo un error en la conexion al wifi , volviendo al modo configuriacion");
+        configuracion();
+      }
+    }
   
   }
   else
@@ -176,7 +185,7 @@ while(x==0)
   
   if(beeSerial.available())
   {
-    if(beeSerial.find("~"))
+    if(beeSerial.find(":"))
     {
       //+IPD,0,67:~"ARRIS-5222"/"macosay3099"/TemperaturaDallas/Temperatura/recamara.
       beeSerial.readBytesUntil("~",datos,95);
@@ -184,7 +193,12 @@ while(x==0)
       {
         cadena += String(datos[i]);
       }
-
+     /*
+       for(int x=0;x<95;x++)
+        { 
+         cadena += char(beeSerial.read());
+        }*/
+         
       do
       {
       
@@ -211,11 +225,14 @@ while(x==0)
    
 }
 
+  informacion[0]="\"ARRIS-5222\"";
+  informacion[1]="\"macosay3099\"";
 
   char red[15];
   informacion[0].toCharArray(red,15);
   char password[20];
   informacion[1].toCharArray(password,20);
+  
   char nombreSensor[20];
   informacion[2].toCharArray(nombreSensor,20);
   char tipoSensor[20];
@@ -237,82 +254,75 @@ while(x==0)
   Serial.println(sensorType);
   Serial.println(ubicacionSensor);
 
-  delay(10000);
-/*
-  for(int j=0;j<7;j++)
-  {
-    Serial.println(informacion[j]);
-  }
+  delay(8000);
 
-  */
+  conectar();
+
 }
+//*******************************
+void conectar()
+{
+  int x=0;
+  delay(2000);
+  beeSerial.println("AT+CWJAP="+RED+","+pass);
+  delay(6000);
+  respuestaComandos("WIFI");
+  
+  beeSerial.println("AT+CWMODE=1");
+  delay(2000);
+  respuestaComandos("Mode1");
 
+  beeSerial.println("AT+CIPMUX=1");
+  delay(2000);
+  respuestaComandos("Conexion multiple");
+
+  beeSerial.println("AT+CIPSERVER=1,9000");
+  delay(2000);
+  respuestaComandos("Esperando por conexion");
+  while(x==0)
+  {
+    if (beeSerial.available()) 
+    { 
+      if (beeSerial.find("OK"))
+      {
+        Serial.println("Servidor Conectado");
+        x=1;
+      } 
+    }
+    
+  }
+  
+}
 //************************************************************************Setup**************************************************************************************
 void setup() {
  
-  Serial.begin(115000);
-  beeSerial.begin(115000);
+  Serial.begin(115200);
+  beeSerial.begin(115200);
   sensores.begin();
   pinMode(pulsador,INPUT);
- // write_StringEEPROM(0,"HELLO");
+  conectar();
+
   
-/*
-  Serial.println("Entraste en modo configuracion");
 
-//Desconectamos la red local guardada
-beeSerial.println("AT+CWMODE=1");
-delay(1000);
-respuestaComandos("Mode1");
-  
-//Desconectamos la red wifi que tenga guardado
-beeSerial.println("AT+CWQAP");
-delay(1000);
-respuestaComandos("Desconectar wifi");
-
-//configuramos modo estacion
-beeSerial.println("AT+CWMODE=3");
-delay(1000);
-respuestaComandos("ModoEstacion");
-
-beeSerial.println("AT+CIPMUX=1");
-delay(1000);
-respuestaComandos("Conexion multiple");
-
-//Iniciamos la red local
-//Serial.println("AT+CWJAP=\"ARRIS-5222\",\"macosay3099\"");//
-beeSerial.println("AT+CWSAP=\"smartcd35\",\admin1234\",6,2");
-delay(5000);
-respuestaComandos("Red Local");
-
-
-
-//Activamos el modo server para esperar los sensores
-beeSerial.println("AT+CIPSERVER=1,9001");
-delay(3000);
-respuestaComandos("ModoServer");
-delay(30000);
-*/
 }
 //************************************************************************LOOP**************************************************************************************
 void loop() {
 
-  //str=read_StringEEPROM(0);
-  //Serial.println(str);
+  
   
   if(digitalRead(pulsador)==HIGH)
   {
    // Serial.println("Presionado");
-   tiempo(1);//1 es para Entrar al modo configuracion , 2 es para cuando queremos salir
+   tiempo(5000,1);//1 es para Entrar al modo configuracion , 2 es para cuando queremos salir
   }
   else{
  
   sensores.requestTemperatures(); 
   temperaturaC=sensores.getTempCByIndex(0);
   Serial.println("La temperatura es: "+ String(temperaturaC));
+  
   }
-  /*Serial.println(tiempo);
-  Serial.println(detener);
-  Serial.println("");*/
+
 //Serial.println(DallasTemperature::toFahrenheit(temperaturaC)); // Converts tempC to Fahrenheit
 }
 
