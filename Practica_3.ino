@@ -16,11 +16,13 @@ String informacion[5];
 String salto="NO";
 
 //*******Variables que se guardaran en la eeprom
- String pass;
- String RED;
+ String pass= "\"macosay3099\"";
+ String RED ="\"ARRIS-5222\"";
  String sensorName;
  String sensorType;
  String location;
+
+
 
 
 
@@ -28,6 +30,8 @@ OneWire red1(ONE_WIRE_BUS);
 DallasTemperature sensores(&red1);
 SoftwareSerial beeSerial(7, 6); // RX, TX
 //************************************************************************Funciones**********************************************************************************
+
+//La funcion tiempo establece que hacer cuando se pulsa el boton un determinado tiempo
 void tiempo(int tiempo,int proposito)
 {
 int x=0;
@@ -76,6 +80,7 @@ while(x==0)
 }
 
 //*********************
+//Esta funcion escribe en el puerto serial si los comandos At dieron OK o no
 void respuestaComandos(String Proceso)
 {
   delay(2000);
@@ -96,7 +101,7 @@ void respuestaComandos(String Proceso)
       Serial.println(Proceso+": No");
       if(Proceso == "WIFI")
       {
-        Serial.println("Hubo un error en la conexion al wifi , volviendo al modo configuriacion");
+        Serial.println("Hubo un error en la conexion al wifi");
         
         configuracion();
       }
@@ -106,11 +111,17 @@ void respuestaComandos(String Proceso)
   else
   {
     Serial.println(Proceso+": Fail");
+    if(Proceso=="WIFI")
+    {
+      salto="SI";  
+      Serial.println("Hubo un error de conexion con la tajeta WIFI, revisa la conexion");
+    }
    }
    delay(1000);
 }
 
 //***********************
+//Es el modo en el cual establecemos la nueva red mediante una estacion que crea el bee al princpio
 void configuracion()
 {
 int x=0;
@@ -167,19 +178,7 @@ Serial.println("Entraste en modo configuracion");
   
     delay(1000);
    }
-/*informacion[0]="\"ARRIS-5222\"";
-informacion[1]="\"macosay3099\"";
 
-char red[15];
-informacion[0].toCharArray(red,15);
-char password[20];
-informacion[1].toCharArray(password,20);
-
-String RED = String(red);
-String pass= String(password);
-
-Serial.println(RED);
-Serial.println(pass); */
 //beeSerial.println("AT+CWJAP="+RED+","+pass);//
 
 
@@ -274,9 +273,12 @@ while(x==0)
 
 }
 //*******************************
+//Es la funcion que hace la conexion a internet, en caso de que la memoria eeprom no tenga la informacion correcta pasara al modo configuracion automaticamente
 void conectar()
 {
   int x=0;
+
+  Serial.println("Buscando conectarse al modem");
   delay(2000);
   beeSerial.println("AT+CWJAP="+RED+","+pass);
   delay(6000);
@@ -302,6 +304,8 @@ void conectar()
         if (beeSerial.find("CONNECT"))
         {
           Serial.println("Servidor Conectado");
+          delay(1000);
+          enviarDatos("-Conectado al modulo",0);
           x=1;
         } 
       }
@@ -311,7 +315,8 @@ void conectar()
   
 }
 
-
+//****************************
+//Actualiza el valor del sensor 
 float valorSensor()
 {
   float valor =0.0;
@@ -320,6 +325,22 @@ float valorSensor()
   
   return valor;
 }
+//*******************
+//Envia los datos del sensor por wifi
+void enviarDatos(String Mensajefinal,int NumeroDeConexion)
+  { 
+  int tam;
+  String mensaje2;
+  tam=Mensajefinal.length();
+  mensaje2="AT+CIPSEND="+String(NumeroDeConexion)+ "," + String(tam);
+
+  beeSerial.println(mensaje2);
+  delay(500);
+  
+  beeSerial.println(Mensajefinal);
+  
+  delay(500);
+}
 //************************************************************************Setup**************************************************************************************
 void setup() {
  
@@ -327,7 +348,7 @@ void setup() {
   beeSerial.begin(115200);
   sensores.begin();
   pinMode(pulsador,INPUT);
-  conectar();
+  conectar();// Esperar 25 segundos para llegar al modo servidor
   temperaturaC=valorSensor();
   AtemperaturaC=valorSensor();
   Serial.println(temperaturaC);
@@ -336,7 +357,8 @@ void setup() {
 
 }
 //************************************************************************LOOP**************************************************************************************
-void loop() {
+void loop() 
+{
 
   
   
@@ -349,14 +371,29 @@ void loop() {
   {
  
     temperaturaC=valorSensor();
-    if(temperaturaC-AtemperaturaC==0.5)
+    if(temperaturaC-AtemperaturaC==1 || temperaturaC-AtemperaturaC==-1 )
     {
       Serial.println("La temperatura es: "+ String(temperaturaC));
       AtemperaturaC=temperaturaC;
+      enviarDatos(String(temperaturaC),0);
       
+    }
+
+    else if(beeSerial.available())
+    {
+      if (beeSerial.find("~"))
+      {
+         delay(1000);
+        Serial.println("se solicito la temperatura: "+ String(temperaturaC));
+        AtemperaturaC=temperaturaC;
+        enviarDatos(String(temperaturaC),0);
+               
+      }
     }
   
   }
+
+  
 
 //Serial.println(DallasTemperature::toFahrenheit(temperaturaC)); // Converts tempC to Fahrenheit
 }
