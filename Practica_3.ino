@@ -297,7 +297,8 @@ void conectar()
     beeSerial.println("AT+CIPSERVER=1,9001");
     delay(2000);
     respuestaComandos("Esperando por conexion");
-    while(x==0)
+    delay(3000);
+    /*while(x==0)
     {
       if (beeSerial.available()) 
       { 
@@ -310,7 +311,7 @@ void conectar()
         } 
       }
       
-    }
+    }*/
   }
   
 }
@@ -348,6 +349,7 @@ void setup() {
   beeSerial.begin(115200);
   sensores.begin();
   pinMode(pulsador,INPUT);
+  delay(3000);
   conectar();// Esperar 25 segundos para llegar al modo servidor
   temperaturaC=valorSensor();
   AtemperaturaC=valorSensor();
