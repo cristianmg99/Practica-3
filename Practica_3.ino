@@ -282,13 +282,7 @@ delay(3000);
       sensorName = String(nombreSensor);
       sensorType = String(tipoSensor);
       location = String(ubicacionSensor);
-      
-      
-    
-      //leerEeprom(); 
-    //Serial.println(cadena);
-     
-    
+   
       delay(5000);
     
       conectar();
@@ -329,10 +323,6 @@ void leerEeprom()
   
   Serial.println(RED);
   Serial.println(pass);
-  
-  /*Serial.println(sensorName);
-  Serial.println(sensorType);
-  Serial.println(ubicacionSensor);*/
 }
 
 //*******************************
@@ -416,19 +406,6 @@ void setup() {
   pinMode(pulsador,INPUT);
   pinMode(led,OUTPUT);
   delay(5000);
-  
-  informacion[0]="\"ARRIS-9999\"";
-  informacion[1]="\"password\"";
-  informacion[0].toCharArray(red,15);
-  informacion[1].toCharArray(password,20);
-  EEPROM.put(0,red);
-  EEPROM.put(20,password);
-
-  Serial.println("Memoria EEPROM actualizada");
-  delay(5000);
-  
-  
-  
   leerEeprom(); 
   conectar();// Esperar 25 segundos para llegar al modo servidor 
   temperaturaC=valorSensor();
