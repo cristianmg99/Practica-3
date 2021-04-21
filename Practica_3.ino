@@ -14,10 +14,18 @@ int pulsador= 8;
 int salirConfiguracion=0;
 String informacion[5];
 String salto="NO";
+bool Conectado=false;
 
 //*******Variables que se guardaran en la eeprom
- String pass= "\"macosay3099\"";
- String RED ="\"ARRIS-5222\"";
+char red[15];
+char password[20];
+char nombreSensor[20];
+char tipoSensor[20];
+char ubicacionSensor[20];
+//*******Variables que se guardaran en la eeprom
+
+ String pass;
+ String RED;
  String sensorName;
  String sensorType;
  String location;
@@ -46,7 +54,8 @@ while(x==0)
     x=1;
     if(proposito == 1)
     {
-    configuracion();
+      Conectado=false;
+      configuracion();
     }
     else if(proposito ==2)
     {
@@ -102,7 +111,7 @@ void respuestaComandos(String Proceso)
       if(Proceso == "WIFI")
       {
         Serial.println("Hubo un error en la conexion al wifi");
-        
+        Conectado=false;
         configuracion();
       }
     }
@@ -235,43 +244,75 @@ while(x==0)
    
 }
 
-  informacion[0]="\"ARRIS-5222\"";
-  informacion[1]="\"macosay3099\"";
+ /* informacion[0]="\"ARRIS-5222\"";
+  informacion[1]="\"macosay3099\"";*/
 
-  char red[15];
+  
   informacion[0].toCharArray(red,15);
-  char password[20];
+  
   informacion[1].toCharArray(password,20);
   
-  char nombreSensor[20];
+  
   informacion[2].toCharArray(nombreSensor,20);
-  char tipoSensor[20];
+  
   informacion[3].toCharArray(tipoSensor,20);
-  char ubicacionSensor[20];
+ 
   informacion[4].toCharArray(ubicacionSensor,20);
   
   
-  RED = String(red);
+  /*RED = String(red);
   pass= String(password);
   sensorName = String(nombreSensor);
   sensorType = String(tipoSensor);
-  location = String(ubicacionSensor);
+  location = String(ubicacionSensor);*/
   
-  Serial.println(cadena);
+ /* Serial.println(cadena);
   Serial.println(RED);
   Serial.println(pass);
   Serial.println(sensorName);
   Serial.println(sensorType);
-  Serial.println(ubicacionSensor);
+  Serial.println(ubicacionSensor);*/
 
-  delay(8000);
+  delay(5000);
 
   conectar();
+  if(Conectado==true)
+  {
+ // EEPROM.update(0,red);
+ //EEPROM.update(20,password);
+  EEPROM.put(40,nombreSensor);
+  EEPROM.put(60,tipoSensor);
+  EEPROM.put(80,ubicacionSensor);
+  }
+  
+  
    salto="SI";
-  //EEPROM.update(0,red);
-  //EEPROM.update(20,password);
+  
 
 }
+//**********
+//Leer los datos de la memoria EEPROM
+void leerEeprom()
+{
+ 
+  Serial.println(EEPROM.get(0,red));
+   Serial.println(EEPROM.get(20,password));
+  //EEPROM.get(40,nombreSensor);
+ /* EEPROM.get(60,tipoSensor);
+  EEPROM.get(80,ubicacionSensor);*/
+
+  RED = String(red);
+  pass= String(password);
+  sensorName = String(nombreSensor);
+  /*sensorType = String(tipoSensor);
+  location = String(ubicacionSensor);*/
+  
+   //Serial.println(cadena);
+  Serial.println(RED);
+  Serial.println(pass);
+  //Serial.println(sensorName);
+}
+
 //*******************************
 //Es la funcion que hace la conexion a internet, en caso de que la memoria eeprom no tenga la informacion correcta pasara al modo configuracion automaticamente
 void conectar()
@@ -298,6 +339,7 @@ void conectar()
     delay(2000);
     respuestaComandos("Esperando por conexion");
     delay(3000);
+    Conectado=true;
     /*while(x==0)
     {
       if (beeSerial.available()) 
@@ -344,12 +386,24 @@ void enviarDatos(String Mensajefinal,int NumeroDeConexion)
 }
 //************************************************************************Setup**************************************************************************************
 void setup() {
+
  
   Serial.begin(115200);
   beeSerial.begin(115200);
   sensores.begin();
   pinMode(pulsador,INPUT);
-  delay(3000);
+  delay(5000);
+  
+  /*informacion[0]="\"ARRIS-5222\"";
+  informacion[1]="\"macosay3099\"";
+  informacion[0].toCharArray(red,15);
+  informacion[1].toCharArray(password,20);
+  EEPROM.put(0,red);
+  EEPROM.put(20,password);*/
+  Serial.println("EEprom Actualizada");
+  delay(5000);
+  
+  leerEeprom();
   conectar();// Esperar 25 segundos para llegar al modo servidor
   temperaturaC=valorSensor();
   AtemperaturaC=valorSensor();
@@ -368,6 +422,7 @@ void loop()
   {
    // Serial.println("Presionado");
    tiempo(5000,1);//1 es para Entrar al modo configuracion , 2 es para cuando queremos salir
+   
   }
   else
   {
