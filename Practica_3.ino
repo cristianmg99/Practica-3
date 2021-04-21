@@ -136,12 +136,12 @@ void configuracion()
 int x=0;
 Serial.println("Entraste en modo configuracion");
   
-  /*if(digitalRead(pulsador)==HIGH)
+  if(digitalRead(pulsador)==HIGH)
   {
     tiempo(3000,2);
     
   }
-  else{*/
+  else{
     
    
     beeSerial.println("ATE0");
@@ -166,7 +166,6 @@ Serial.println("Entraste en modo configuracion");
     
     
     //Iniciamos la red local
-    //Serial.println("AT+CWJAP=\"ARRIS-5222\",\"macosay3099\"");//
     beeSerial.println("AT+CWSAP=\"smartcd35\",\admin1234\",6,2");
     delay(3000);
     respuestaComandos("Red Local");
@@ -186,7 +185,7 @@ Serial.println("Entraste en modo configuracion");
     Serial.println("Esperando por los datos del sensor");
   
     delay(1000);
-   
+   }
 
 //beeSerial.println("AT+CWJAP="+RED+","+pass);//
 
@@ -248,25 +247,17 @@ while(x==0)
   informacion[1]="\"macosay3099\"";*/
 
   
- // informacion[0].toCharArray(red,15);
- //informacion[1].toCharArray(password,20);
+  //informacion[0].toCharArray(red,15);
+  //informacion[1].toCharArray(password,20);
   informacion[2].toCharArray(nombreSensor,20);
   informacion[3].toCharArray(tipoSensor,20);
   informacion[4].toCharArray(ubicacionSensor,20);
   
   
-  /*RED = String(red);
-  pass= String(password);
-  sensorName = String(nombreSensor);
-  sensorType = String(tipoSensor);
-  location = String(ubicacionSensor);*/
+
   
-  Serial.println(cadena);
- /*Serial.println(RED);
-  Serial.println(pass);
-  Serial.println(sensorName);
-  Serial.println(sensorType);
-  Serial.println(ubicacionSensor);*/
+//Serial.println(cadena);
+ 
 
   delay(5000);
 
@@ -302,7 +293,6 @@ void leerEeprom()
   sensorType = String(tipoSensor);
   location = String(ubicacionSensor);
   
-   //Serial.println(cadena);
   Serial.println(RED);
   Serial.println(pass);
   Serial.println(sensorName);
@@ -333,7 +323,7 @@ void conectar()
     respuestaComandos("Conexion multiple");
   
     beeSerial.println("AT+CIPSERVER=1,9001");
-      delay(2000);
+    delay(2000);
     respuestaComandos("Esperando por conexion");
     delay(3000);
     Conectado=true;
