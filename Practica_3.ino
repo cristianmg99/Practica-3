@@ -85,7 +85,7 @@ while(x==0)
     
     if(millis()-parpadeo>=500)
     {
-      Serial.print("Parpadeo");
+      
       estadoLed= !estadoLed;
       digitalWrite(led,estadoLed);
       parpadeo = millis();
@@ -211,6 +211,14 @@ delay(3000);
    String cadena; 
     while(x==0)
     {
+      long parpadeo;
+
+        if(millis()-parpadeo>=500)
+         {
+          estadoLed= !estadoLed;
+          digitalWrite(led,estadoLed);
+          parpadeo = millis();
+          }
      
       String cad1 ="";
       int posicion_inicial = 0;
@@ -220,7 +228,7 @@ delay(3000);
       
       if(beeSerial.available())
       {
-        if(beeSerial.find(":"))
+        if(beeSerial.find("~"))
         {
           //+IPD,0,67:~"ARRIS-5222"/"macosay3099"/TemperaturaDallas/Temperatura/recamara.
           beeSerial.readBytesUntil("~",datos,95);
@@ -255,20 +263,29 @@ delay(3000);
     
        
     }
-    
-     /* informacion[0]="\"ARRIS-5222\"";
-      informacion[1]="\"macosay3099\"";*/
+   }
+
+   digitalWrite(led,HIGH);
+   Serial.println("Datos Recibidos"); 
+      informacion[0]="\"ARRIS-5222\"";
+      informacion[1]="\"macosay3099\"";
     
       
-      //informacion[0].toCharArray(red,15);
-      //informacion[1].toCharArray(password,20);
+      informacion[0].toCharArray(red,15);
+      informacion[1].toCharArray(password,20);
       informacion[2].toCharArray(nombreSensor,20);
       informacion[3].toCharArray(tipoSensor,20);
       informacion[4].toCharArray(ubicacionSensor,20);
+
+      RED = String(red);
+      pass= String(password);
+      sensorName = String(nombreSensor);
+      sensorType = String(tipoSensor);
+      location = String(ubicacionSensor);
       
       
     
-      
+      //leerEeprom(); 
     //Serial.println(cadena);
      
     
@@ -277,17 +294,19 @@ delay(3000);
       conectar();
       if(Conectado==true)
       {
-     // EEPROM.update(0,red);
-     //EEPROM.update(20,password);
+      Serial.println("Memoria EEprom Actualizada");
+      digitalWrite(led,LOW);
+      EEPROM.put(0,red);
+      EEPROM.put(20,password);
       EEPROM.put(40,nombreSensor);
       EEPROM.put(60,tipoSensor);
       EEPROM.put(80,ubicacionSensor);
       }
       
-      digitalWrite(led,LOW);
+      
        salto="SI";
       
-    }
+    
 } 
 
 
@@ -310,9 +329,10 @@ void leerEeprom()
   
   Serial.println(RED);
   Serial.println(pass);
-  Serial.println(sensorName);
+  
+  /*Serial.println(sensorName);
   Serial.println(sensorType);
-  Serial.println(ubicacionSensor);
+  Serial.println(ubicacionSensor);*/
 }
 
 //*******************************
@@ -395,19 +415,22 @@ void setup() {
   sensores.begin();
   pinMode(pulsador,INPUT);
   pinMode(led,OUTPUT);
-  /*delay(5000);
+  delay(5000);
   
-  /*informacion[0]="\"ARRIS-5222\"";
-  informacion[1]="\"macosay3099\"";
+  informacion[0]="\"ARRIS-9999\"";
+  informacion[1]="\"password\"";
   informacion[0].toCharArray(red,15);
   informacion[1].toCharArray(password,20);
   EEPROM.put(0,red);
   EEPROM.put(20,password);
-  Serial.println("EEprom Actualizada");
+
+  Serial.println("Memoria EEPROM actualizada");
   delay(5000);
   
-  leerEeprom();
-  conectar();// Esperar 25 segundos para llegar al modo servidor   */
+  
+  
+  leerEeprom(); 
+  conectar();// Esperar 25 segundos para llegar al modo servidor 
   temperaturaC=valorSensor();
   AtemperaturaC=valorSensor();
   Serial.println(temperaturaC);
@@ -424,7 +447,7 @@ void loop()
   if(digitalRead(pulsador)==HIGH)
   {
    // Serial.println("Presionado");
-   tiempo(5000,1);//1 es para Entrar al modo configuracion , 2 es para cuando queremos salir
+   tiempo(5000,1);//1 es para Entrar al modo configuracion 
    
   }
   else
